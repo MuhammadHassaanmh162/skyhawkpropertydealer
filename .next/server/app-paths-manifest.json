@@ -1,0 +1,15 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/revalidate/route": "app/api/revalidate/route.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/(public)/about/page": "app/(public)/about/page.js",
+  "/(public)/contact/page": "app/(public)/contact/page.js",
+  "/(public)/page": "app/(public)/page.js",
+  "/(public)/properties/[id]/page": "app/(public)/properties/[id]/page.js",
+  "/(public)/properties/page": "app/(public)/properties/page.js",
+  "/admin/(protected)/page": "app/admin/(protected)/page.js",
+  "/admin/(protected)/properties/new/page": "app/admin/(protected)/properties/new/page.js",
+  "/admin/(protected)/properties/[id]/edit/page": "app/admin/(protected)/properties/[id]/edit/page.js",
+  "/admin/(protected)/settings/page": "app/admin/(protected)/settings/page.js",
+  "/admin/(protected)/properties/page": "app/admin/(protected)/properties/page.js"
+}
