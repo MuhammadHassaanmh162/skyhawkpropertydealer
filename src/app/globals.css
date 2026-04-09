@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { --font-inter: 'Inter', sans-serif; }
+  html  { scroll-behavior: smooth; }
+  body  {
+    @apply bg-white text-ink antialiased;
+    font-family: var(--font-inter);
+  }
+  * { box-sizing: border-box; }
+
+  ::-webkit-scrollbar       { width: 5px; }
+  ::-webkit-scrollbar-track { background: #F5F3EE; }
+  ::-webkit-scrollbar-thumb { background: #CCCCCC; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #888888; }
+}
+
+@layer components {
+  /* Layout */
+  .container-max   { @apply max-w-7xl mx-auto; }
+  .section-padding { @apply py-20 px-4 sm:px-6 lg:px-8; }
+
+  /* Cards */
+  .card       { @apply bg-white border border-warm-border rounded-2xl shadow-card; }
+  .card-hover { @apply hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200; }
+
+  /* Eyebrow label */
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-widest text-ink-400 mb-3 block; }
+
+  /* Status pill */
+  .pill { @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold; }
+
+  /* Dark button (primary CTA) */
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
+           bg-ink text-white text-sm font-semibold
+           hover:bg-ink-700 active:bg-ink-800
+           transition-colors duration-150;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
+           border border-ink-200 text-ink-600 text-sm font-semibold
+           hover:border-ink-900 hover:text-ink-900
+           transition-colors duration-150;
+  }
+
+  /* Input */
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl border border-warm-border bg-white text-ink text-sm
+           placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900/10
+           focus:border-ink-900 transition-all duration-150;
+  }
+}
+
+/* Remove Swiper dot colors from old theme */
+.swiper-pagination-bullet        { background: #AAAAAA !important; opacity: 0.5 !important; }
+.swiper-pagination-bullet-active { background: #111111 !important; opacity: 1 !important; }

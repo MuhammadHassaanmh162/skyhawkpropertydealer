@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next:*)",
+      "Bash(node -e ':*)",
+      "Bash(cmd /c \"cd /d d:\\\\skyHawkPropertyDealer && npx tsc --noEmit 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d d:\\\\\\\\skyHawkPropertyDealer && npx tsc --noEmit 2>&1\")",
+      "Bash(type \"C:\\\\\\\\Users\\\\\\\\DANISH LAPTOP\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\d--skyHawkPropertyDealer\\\\\\\\76df3280-2054-4e10-b65d-0bdc3e80bda6\\\\\\\\tasks\\\\\\\\bardl8l3q.output\")",
+      "Bash(powershell.exe -Command \"Set-Location 'd:\\\\skyHawkPropertyDealer'; npx next build 2>&1 | Select-Object -Last 60\")",
+      "Bash(cmd.exe /c \"cd /d d:\\\\\\\\skyHawkPropertyDealer && npx next build 1>C:\\\\\\\\Temp\\\\\\\\build_out.txt 2>&1\")",
+      "Bash(echo \"Exit: $?\")",
+      "Read(//c/Temp/**)",
+      "Bash(cmd.exe /c \"cd /d d:\\\\\\\\skyHawkPropertyDealer && npx next build 1>C:\\\\\\\\Temp\\\\\\\\nextbuild.log 2>&1\")",
+      "Bash(echo \"CMD exit: $?\")",
+      "Bash(node node_modules/.bin/next build)",
+      "Bash(tasklist.exe /FI \"IMAGENAME eq node.exe\")",
+      "Bash(cmd.exe /c \"rd /s /q d:\\\\skyHawkPropertyDealer\\\\.next 2>&1 && echo DELETED || echo FAILED\")",
+      "Bash(cmd.exe /c \"cd /d d:\\\\skyHawkPropertyDealer && rmdir /s /q .next 2>&1\")",
+      "Bash(cmd.exe /c \"taskkill /F /IM node.exe 2>&1\")",
+      "Bash(cmd.exe /c \"handle64.exe d:\\\\skyHawkPropertyDealer\\\\.next\\\\trace 2>&1 || echo 'handle64 not found'\")",
+      "Bash(node node_modules/next/dist/bin/next build)",
+      "Bash(tee /tmp/build.log)",
+      "Bash(echo \"BUILD EXIT: $?\")",
+      "Read(//tmp/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\"
+    ]
+  }
+}
