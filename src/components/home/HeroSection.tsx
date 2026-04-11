@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronDown } from 'lucide-react';
+
+const BLUR_PLACEHOLDER =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZGU5ZTEiLz48L3N2Zz4=';
 import { PAKISTANI_CITIES } from '@/lib/constants/locations';
 import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes';
 
@@ -52,6 +55,8 @@ export function HeroSection({ heroImageUrl }: HeroSectionProps) {
             sizes="(max-width: 1280px) 100vw, 1280px"
             className="object-cover"
             priority
+            placeholder="blur"
+            blurDataURL={BLUR_PLACEHOLDER}
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />

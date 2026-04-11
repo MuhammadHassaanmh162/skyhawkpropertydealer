@@ -6,9 +6,11 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 import { getProperties } from '@/lib/firebase/firestore';
 import type { PropertyFilters as Filters } from '@/types/filters';
 import type { Property, PropertyType, PropertyStatus } from '@/types/property';
-import { Spinner } from '@/components/ui/Spinner';
+import { PropertyGridSkeleton } from '@/components/ui/Skeleton';
 
-export const dynamic = 'force-dynamic';
+// ISR — revalidate every 30 s so new listings appear quickly
+// without re-running a full Firestore fetch on every single request.
+export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: 'Browse Properties',
@@ -63,11 +65,7 @@ export default function PropertiesPage({ searchParams }: { searchParams: SearchP
               <PropertyFilters />
             </Suspense>
             <div className="flex-1 min-w-0">
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Spinner size="lg" />
-                </div>
-              }>
+              <Suspense fallback={<PropertyGridSkeleton count={9} />}>
                 <PropertiesContent searchParams={searchParams} />
               </Suspense>
             </div>

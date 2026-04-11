@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { MapPin, BedDouble, Bath, Maximize2 } from 'lucide-react';
 import type { Property } from '@/types/property';
 
+const BLUR_PLACEHOLDER =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZGU5ZTEiLz48L3N2Zz4=';
+
 const STATUS_STYLES: Record<string, string> = {
   'For Sale': 'bg-ink-50 text-ink-700 border border-ink-100',
   'For Rent': 'bg-warm text-ink-600 border border-warm-border',
@@ -32,6 +35,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
           loading="lazy"
+          placeholder="blur"
+          blurDataURL={BLUR_PLACEHOLDER}
         />
         {/* Status */}
         <div className="absolute top-3 left-3">

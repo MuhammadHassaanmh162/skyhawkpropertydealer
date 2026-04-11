@@ -1,5 +1,5 @@
-import { PageLoader } from '@/components/ui/PageLoader';
+import { HomePageSkeleton } from '@/components/ui/Skeleton';
 
-export default function Loading() {
-  return <PageLoader />;
+export default function HomeLoading() {
+  return <HomePageSkeleton />;
 }

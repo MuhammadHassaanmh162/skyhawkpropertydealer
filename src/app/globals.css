@@ -61,6 +61,32 @@
 }
 .scrollbar-none::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
+/* ── Skeleton / shimmer loading states ──────────────────────────────────── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #ede9e1;
+  border-radius: 0.5rem;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent        0%,
+    rgba(255,255,255,0.55) 45%,
+    rgba(255,255,255,0.75) 50%,
+    rgba(255,255,255,0.55) 55%,
+    transparent       100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
 /* SVG spinning ring — ensure transform-origin is the center of the SVG */
 .animate-spin-slow {
   transform-origin: center center;

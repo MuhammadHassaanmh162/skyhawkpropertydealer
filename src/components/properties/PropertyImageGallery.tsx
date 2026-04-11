@@ -4,7 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Download, Images } from 'lucide-react';
+
 import type { PropertyImage } from '@/types/property';
+
+// Tiny warm-gray 1×1 SVG used as blur placeholder while images load
+const BLUR_PLACEHOLDER =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZGU5ZTEiLz48L3N2Zz4=';
 
 interface PropertyImageGalleryProps {
   images: PropertyImage[];
@@ -63,29 +68,30 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
   return (
     <>
       {/* ── Main image ── */}
+      {/* All images are pre-rendered and stacked; CSS opacity swap = instant, zero re-fetch */}
       <div
-        className="relative w-full h-[260px] sm:h-[400px] lg:h-[480px] rounded-2xl overflow-hidden bg-gray-100 group cursor-pointer select-none"
+        className="relative w-full h-[260px] sm:h-[400px] lg:h-[480px] rounded-2xl overflow-hidden bg-[#ede9e1] group cursor-pointer select-none"
         onClick={() => setLightboxOpen(true)}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="absolute inset-0"
+        {sorted.map((img, i) => (
+          <div
+            key={img.publicId ?? img.storagePath ?? img.url}
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{ opacity: i === activeIndex ? 1 : 0, zIndex: i === activeIndex ? 1 : 0 }}
           >
             <Image
-              src={sorted[activeIndex].url}
-              alt={`${title} — photo ${activeIndex + 1}`}
+              src={img.url}
+              alt={`${title} — photo ${i + 1}`}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 65vw, 800px"
               className="object-cover"
-              priority={activeIndex === 0}
+              priority={i === 0}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
             />
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
 
         {/* Gradient overlay (bottom) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -202,27 +208,24 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
               </div>
             </div>
 
-            {/* Main image area */}
-            <div className="flex-1 flex items-center justify-center px-12 sm:px-16 min-h-0 relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeIndex}
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.18 }}
-                  className="relative w-full max-w-5xl max-h-[calc(100vh-200px)]"
-                  style={{ aspectRatio: 'auto' }}
+            {/* Main image area — all images stacked, CSS opacity for instant switching */}
+            <div className="flex-1 flex items-center justify-center px-12 sm:px-16 min-h-0 relative overflow-hidden">
+              {sorted.map((img, i) => (
+                <div
+                  key={img.publicId ?? img.storagePath ?? img.url}
+                  className="absolute inset-0 flex items-center justify-center transition-opacity duration-200"
+                  style={{ opacity: i === activeIndex ? 1 : 0, zIndex: i === activeIndex ? 1 : 0 }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={sorted[activeIndex].url}
-                    alt={`${title} — photo ${activeIndex + 1}`}
-                    className="block mx-auto max-w-full max-h-[calc(100vh-200px)] object-contain rounded-xl shadow-2xl"
+                    src={img.url}
+                    alt={`${title} — photo ${i + 1}`}
+                    className="block max-w-full max-h-[calc(100vh-200px)] object-contain rounded-xl shadow-2xl"
+                    loading={i === 0 ? 'eager' : 'lazy'}
                   />
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              ))}
 
               {/* Lightbox arrows */}
               {sorted.length > 1 && (
