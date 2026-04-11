@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from '@/lib/firebase/auth';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Spinner } from '@/components/ui/Spinner';
+import { Logo } from '@/components/ui/Logo';
 
 const schema = z.object({
   email:    z.string().email('Invalid email address'),
@@ -58,15 +58,8 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
 
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-10">
-          <div className="relative h-9 w-9">
-            <Image src="/logo.png" alt="Sky Hawk" fill sizes="36px" className="object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          </div>
-          <div>
-            <p className="font-bold text-ink text-[15px] leading-none">Sky Hawk</p>
-            <p className="text-ink-400 text-[11px] font-medium tracking-wide">Property Dealer</p>
-          </div>
+        <div className="mb-10">
+          <Logo variant="dark" size="md" />
         </div>
 
         {/* Heading */}

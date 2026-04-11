@@ -25,8 +25,8 @@ export default function AdminEditPropertyPage({ params }: { params: { id: string
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-ink">Edit Property</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-ink">Edit Property</h1>
         <p className="text-ink-400 text-sm mt-0.5 truncate">{property.title}</p>
       </div>
       <PropertyForm mode="edit" property={property} />

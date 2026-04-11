@@ -6,15 +6,15 @@ import { DashboardStats } from '@/components/admin/DashboardStats';
 
 export default function AdminDashboardPage() {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-ink">Dashboard</h1>
           <p className="text-ink-400 text-sm mt-0.5">Welcome back to Sky Hawk Admin</p>
         </div>
         <Link
           href="/admin/properties/new"
-          className="btn-dark text-sm px-4 py-2.5"
+          className="btn-dark text-sm px-4 py-2.5 self-start xs:self-auto"
         >
           <PlusCircle size={15} />
           Add Property

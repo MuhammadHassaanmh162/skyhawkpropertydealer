@@ -63,8 +63,8 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-ink">Site Settings</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-ink">Site Settings</h1>
         <p className="text-ink-400 text-sm mt-0.5">Update contact details and site configuration</p>
       </div>
 
