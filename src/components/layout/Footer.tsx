@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Phone, Mail, MapPin, MessageCircle, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -11,14 +11,8 @@ export function Footer() {
 
           {/* Brand */}
           <div className="md:col-span-4">
-            <Link href="/" className="flex items-center gap-2.5 mb-5">
-              <div className="relative h-9 w-9">
-                <Image src="/logo.png" alt="Sky Hawk" fill sizes="36px" className="object-contain brightness-0 invert" />
-              </div>
-              <span className="font-bold text-white text-[15px] leading-none">
-                Sky Hawk<br />
-                <span className="text-white/40 text-[11px] font-medium">Property Dealer</span>
-              </span>
+            <Link href="/" className="inline-flex mb-5">
+              <Logo variant="light" size="md" />
             </Link>
             <p className="text-white/40 text-sm leading-relaxed mb-6 max-w-xs">
               Pakistan&apos;s trusted property dealer — connecting buyers and sellers with integrity since 2019.

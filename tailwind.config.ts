@@ -3,6 +3,14 @@ import type { Config } from 'tailwindcss';
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
+    screens: {
+      xs:  '480px',
+      sm:  '640px',
+      md:  '768px',
+      lg:  '1024px',
+      xl:  '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         // Primary text / button color
@@ -60,12 +68,19 @@ const config: Config = {
         '4xl': '2rem',
       },
       animation: {
-        'fade-up':  'fadeUp 0.5s ease-out forwards',
-        'fade-in':  'fadeIn 0.4s ease-out forwards',
+        'fade-up':    'fadeUp 0.5s ease-out forwards',
+        'fade-in':    'fadeIn 0.4s ease-out forwards',
+        'spin-slow':  'spin 2s linear infinite',
+        'hawk-soar':  'hawkSoar 2.4s ease-in-out infinite',
+        'loader-in':  'loaderIn 0.3s ease-out forwards',
+        'loader-out': 'loaderOut 0.4s ease-in forwards',
       },
       keyframes: {
-        fadeUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        fadeUp:    { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+        fadeIn:    { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        hawkSoar:  { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-5px)' } },
+        loaderIn:  { '0%': { opacity: '0', transform: 'scale(0.9)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+        loaderOut: { '0%': { opacity: '1', transform: 'scale(1)' }, '100%': { opacity: '0', transform: 'scale(0.95)' } },
       },
     },
   },

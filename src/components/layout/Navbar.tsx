@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { Logo } from '@/components/ui/Logo';
 
 const navLinks = [
   { href: '/',           label: 'Home' },
@@ -38,21 +38,8 @@ export function Navbar() {
         <div className="container-max flex items-center justify-between h-[68px] px-4 sm:px-6 lg:px-8">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="relative h-9 w-9">
-              <Image
-                src="/logo.png"
-                alt="Sky Hawk Property Dealer"
-                fill
-                sizes="36px"
-                className="object-contain"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              />
-            </div>
-            <span className="font-bold text-ink text-[15px] tracking-tight hidden sm:block leading-none">
-              Sky Hawk<br />
-              <span className="text-ink-400 text-[11px] font-medium tracking-wide">Property Dealer</span>
-            </span>
+          <Link href="/" className="shrink-0">
+            <Logo variant="dark" size="md" />
           </Link>
 
           {/* Desktop nav */}

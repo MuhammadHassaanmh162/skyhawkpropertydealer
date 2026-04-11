@@ -43,20 +43,22 @@ export default function PropertiesPage({ searchParams }: { searchParams: SearchP
   return (
     <PageWrapper>
       {/* Page header */}
-      <div className="pt-24 pb-8 px-4 sm:px-6 lg:px-8 bg-gray-50 border-b border-gray-100">
+      <div className="pt-20 pb-6 px-4 sm:px-6 lg:px-8 bg-gray-50 border-b border-gray-100">
         <div className="container-max">
           <p className="text-xs font-semibold text-gold-500 uppercase tracking-widest mb-1">
             {activeCount > 0 ? `${activeCount} filter${activeCount > 1 ? 's' : ''} applied` : 'All Listings'}
           </p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
             Browse Properties
           </h1>
         </div>
       </div>
 
-      <div className="section-padding">
+      <div className="py-8 sm:py-10 lg:py-14 px-4 sm:px-6 lg:px-8">
         <div className="container-max">
-          <div className="flex gap-8">
+          {/* Mobile: stacked (filter toggle on top, grid below) */}
+          {/* Desktop: sidebar left + grid right */}
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <Suspense fallback={null}>
               <PropertyFilters />
             </Suspense>

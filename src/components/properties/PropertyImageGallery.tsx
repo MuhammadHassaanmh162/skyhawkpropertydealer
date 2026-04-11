@@ -54,8 +54,8 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
           </motion.div>
         </AnimatePresence>
 
-        {/* Zoom hint */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Zoom hint — desktop hover only */}
+        <div className="absolute top-3 right-3 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
             <ZoomIn size={12} /> View full size
           </span>
@@ -66,18 +66,18 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
           {activeIndex + 1} / {sorted.length}
         </div>
 
-        {/* Nav arrows */}
+        {/* Nav arrows — always visible on mobile, hover-reveal on desktop */}
         {sorted.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:shadow-card-hover"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 transition-all hover:bg-white hover:shadow-card-hover gallery-arrow"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:shadow-card-hover"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 transition-all hover:bg-white hover:shadow-card-hover gallery-arrow"
             >
               <ChevronRight size={18} />
             </button>

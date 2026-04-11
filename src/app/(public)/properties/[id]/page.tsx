@@ -43,7 +43,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
   return (
     <PageWrapper>
-      <div className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-white min-h-screen">
+      <div className="pt-20 sm:pt-24 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8 bg-white min-h-screen">
         <div className="container-max">
           <PropertyBreadcrumb city={property.location.city} title={property.title} />
 

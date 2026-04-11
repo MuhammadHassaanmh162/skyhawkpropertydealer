@@ -18,7 +18,7 @@ export function WhyChooseUs() {
       <div className="container-max">
 
         {/* Heading */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 lg:mb-16">
           <span className="eyebrow">How It Works</span>
           <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-ink tracking-tight">
             Simple. Transparent. Trusted.

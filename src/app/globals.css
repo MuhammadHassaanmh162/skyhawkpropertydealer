@@ -20,7 +20,7 @@
 @layer components {
   /* Layout */
   .container-max   { @apply max-w-7xl mx-auto; }
-  .section-padding { @apply py-20 px-4 sm:px-6 lg:px-8; }
+  .section-padding { @apply py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8; }
 
   /* Cards */
   .card       { @apply bg-white border border-warm-border rounded-2xl shadow-card; }
@@ -52,6 +52,19 @@
            placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900/10
            focus:border-ink-900 transition-all duration-150;
   }
+}
+
+/* SVG spinning ring — ensure transform-origin is the center of the SVG */
+.animate-spin-slow {
+  transform-origin: center center;
+  transform-box: fill-box;
+}
+
+/* Gallery nav arrows: always visible on mobile, hidden until hover on desktop */
+.gallery-arrow { opacity: 1; }
+@media (min-width: 1024px) {
+  .gallery-arrow { opacity: 0; }
+  .group:hover .gallery-arrow { opacity: 1; }
 }
 
 /* Remove Swiper dot colors from old theme */

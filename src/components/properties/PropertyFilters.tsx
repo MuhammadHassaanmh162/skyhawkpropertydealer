@@ -117,8 +117,8 @@ export function PropertyFilters() {
 
   return (
     <>
-      {/* Mobile toggle */}
-      <div className="lg:hidden mb-4">
+      {/* Mobile: toggle button + collapsible panel (stacks above the grid) */}
+      <div className="lg:hidden">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium shadow-card"
@@ -127,14 +127,15 @@ export function PropertyFilters() {
           Filters
           {hasFilters && <span className="w-2 h-2 rounded-full bg-ink ml-1" />}
         </button>
+
+        {mobileOpen && (
+          <div className="mt-3 bg-white border border-gray-100 rounded-2xl shadow-card p-5">
+            {FilterContent}
+          </div>
+        )}
       </div>
 
-      {mobileOpen && (
-        <div className="lg:hidden bg-white border border-gray-100 rounded-2xl shadow-card p-5 mb-6">
-          {FilterContent}
-        </div>
-      )}
-
+      {/* Desktop sidebar */}
       <aside className="hidden lg:block w-60 shrink-0">
         <div className="bg-white border border-gray-100 rounded-2xl shadow-card p-5 sticky top-24">
           <div className="flex items-center justify-between mb-5">

@@ -1,6 +1,0 @@
-{
-  "lib\\hooks\\useAdminGuard.ts -> @/lib/firebase/auth": {
-    "id": "lib\\hooks\\useAdminGuard.ts -> @/lib/firebase/auth",
-    "files": []
-  }
-}

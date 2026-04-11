@@ -25,7 +25,7 @@ export function FeaturedProperties({ properties }: FeaturedPropertiesProps) {
       <div className="container-max">
 
         {/* Heading */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <span className="eyebrow">New Listings</span>
           <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-ink tracking-tight">
             Featured Properties

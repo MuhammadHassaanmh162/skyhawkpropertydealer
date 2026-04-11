@@ -45,7 +45,7 @@ export function StatsSection() {
   return (
     <section className="section-padding bg-warm-50 border-t border-warm-border">
       <div className="container-max">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8 lg:mb-14">
           <span className="eyebrow">Track Record</span>
           <h2 className="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-ink tracking-tight">
             Measuring the Quiet Impact
