@@ -93,33 +93,33 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
           </div>
         ))}
 
-        {/* Gradient overlay (bottom) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+        {/* Gradient overlay (bottom) — z-[2] sits above image layers (z-1) */}
+        <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
         {/* "View all photos" pill — bottom left */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
+        <div className="absolute bottom-3 left-3 z-[3] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
           <Images size={12} />
           {sorted.length} photo{sorted.length !== 1 ? 's' : ''} · tap to expand
         </div>
 
         {/* Counter — bottom right */}
-        <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
+        <div className="absolute bottom-3 right-3 z-[3] px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
           {activeIndex + 1} / {sorted.length}
         </div>
 
-        {/* Arrow buttons — always visible on mobile, hover-reveal on desktop */}
+        {/* Arrow buttons — z-[5] ensures they're always above every image layer */}
         {sorted.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-[5] w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
               aria-label="Previous image"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-[5] w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
               aria-label="Next image"
             >
               <ChevronRight size={18} />

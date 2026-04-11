@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Upload, X, Loader2, Video, Youtube } from 'lucide-react';
+import { Upload, X, Loader2, Video, Youtube, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -69,7 +69,7 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
     property?.videoUrl?.includes('res.cloudinary.com') ? (property.videoUrl ?? '') : ''
   );
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: property
       ? {
@@ -96,6 +96,12 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
           seller: { name: '', phone: '', whatsapp: '', email: '' },
         },
   });
+
+  const mapEmbedUrl = useWatch({ control, name: 'location.mapEmbedUrl' });
+  const mapUrlIsWrong =
+    !!mapEmbedUrl &&
+    mapEmbedUrl.includes('google.com/maps') &&
+    !mapEmbedUrl.includes('/maps/embed');
 
   async function handleVideoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -193,6 +199,15 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
           </div>
           <div className="md:col-span-2">
             <Input label="Google Maps Embed URL (optional)" {...register('location.mapEmbedUrl')} placeholder="https://www.google.com/maps/embed?pb=..." helperText="Get this from Google Maps > Share > Embed a map > copy the src URL" />
+            {mapUrlIsWrong && (
+              <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-amber-700 text-xs">
+                <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                <span>
+                  This looks like a regular Google Maps link, not an embed URL. It won&apos;t display in the property page.{' '}
+                  To get the embed URL: open Google Maps → click <strong>Share</strong> → <strong>Embed a map</strong> → copy only the URL from the <code>src</code> attribute (starts with <code>https://www.google.com/maps/embed?pb=</code>).
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>

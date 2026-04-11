@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { MapPin, Maximize2, BedDouble, Bath, Calendar, Eye } from 'lucide-react';
+import { MapPin, Maximize2, BedDouble, Bath, Calendar, Eye, ExternalLink } from 'lucide-react';
 import { PropertyImageGallery } from '@/components/properties/PropertyImageGallery';
 import { VideoEmbed } from '@/components/properties/VideoEmbed';
 import { SellerContactCard } from '@/components/properties/SellerContactCard';
@@ -117,14 +117,38 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
               <VideoEmbed videoUrl={property.videoUrl} />
 
-              {property.location.mapEmbedUrl && (
-                <div className="mt-8">
-                  <h3 className="font-bold text-gray-900 text-xl mb-4">Location</h3>
-                  <div className="aspect-video rounded-2xl overflow-hidden border border-gray-100">
-                    <iframe src={property.location.mapEmbedUrl} title="Property Location" loading="lazy" allowFullScreen className="w-full h-full border-0" />
+              {property.location.mapEmbedUrl && (() => {
+                const isEmbed = property.location.mapEmbedUrl.includes('/maps/embed');
+                return (
+                  <div className="mt-8">
+                    <h3 className="font-bold text-gray-900 text-xl mb-4">Location</h3>
+                    {isEmbed ? (
+                      <div className="aspect-video rounded-2xl overflow-hidden border border-gray-100">
+                        <iframe src={property.location.mapEmbedUrl} title="Property Location" loading="lazy" allowFullScreen className="w-full h-full border-0" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-5">
+                        <div className="w-10 h-10 rounded-xl bg-gold-400/10 border border-gold-400/20 flex items-center justify-center shrink-0">
+                          <MapPin size={18} className="text-gold-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm">View on Google Maps</p>
+                          <p className="text-gray-400 text-xs mt-0.5">Opens in a new tab</p>
+                        </div>
+                        <a
+                          href={property.location.mapEmbedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-white text-sm font-medium transition-colors shrink-0"
+                        >
+                          <ExternalLink size={14} />
+                          Open Map
+                        </a>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* Sidebar */}
