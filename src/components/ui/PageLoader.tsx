@@ -37,7 +37,7 @@ export function PageLoader() {
           </svg>
 
           {/* Hawk icon — soars (floats up/down) */}
-          <LogoMark className="relative z-10 w-10 h-11 text-ink animate-hawk-soar" />
+          <img src="/assets/faviicon.png" height={100} width={100} alt="Hawk Icon" />
         </div>
 
         {/* Brand text */}

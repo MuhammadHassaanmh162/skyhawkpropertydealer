@@ -41,14 +41,15 @@ export function Logo({ variant = 'dark', size = 'md', className }: LogoProps) {
 
   return (
     <div className={clsx('flex items-center gap-2.5', className)}>
-      <LogoMark className={clsx(markSize, markColor, 'shrink-0')} />
-      <span className={clsx('font-bold tracking-tight leading-none', textColor, mainText)}>
+      {/* <LogoMark className={clsx(markSize, markColor, 'shrink-0')} /> */}
+      <img alt="" src="/assets/skyhawkpropertydealerlogo.png" width={110} height={110}/>
+      {/* <span className={clsx('font-bold tracking-tight leading-none', textColor, mainText)}>
         Sky Hawk
         <br />
         <span className={clsx('font-medium tracking-wide', subColor, subText)}>
           Property Dealer
         </span>
-      </span>
+      </span> */}
     </div>
   );
 }

@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     default: 'Sky Hawk Property Dealer | Pakistan Real Estate',
     template: '%s | Sky Hawk Property Dealer',
   },
+  icons: {
+    icon: '/assets/faviicon.png', // or .png
+    shortcut: '/assets/faviicon.png',
+    apple: '/assets/faviicon.png', // optional
+  },
   description:
     'Browse houses, plots, and land for sale or rent in Pakistan. Sky Hawk Property Dealer — trusted real estate services across Pakistan.',
   keywords: ['property dealer Pakistan', 'houses for sale Pakistan', 'plots for sale', 'real estate Lahore', 'real estate Islamabad'],
