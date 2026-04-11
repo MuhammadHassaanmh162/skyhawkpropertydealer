@@ -3,12 +3,19 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, Download } from 'lucide-react';
 import type { PropertyImage } from '@/types/property';
 
 interface PropertyImageGalleryProps {
   images: PropertyImage[];
   title: string;
+}
+
+function toDownloadUrl(url: string): string {
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/fl_attachment/');
+  }
+  return url;
 }
 
 export function PropertyImageGallery({ images, title }: PropertyImageGalleryProps) {
@@ -114,12 +121,25 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
             className="fixed inset-0 z-50 bg-black/92 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setLightboxOpen(false)}
           >
-            <button
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              onClick={() => setLightboxOpen(false)}
-            >
-              <X size={20} />
-            </button>
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+              <a
+                href={toDownloadUrl(sorted[activeIndex].url)}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                title="Download image"
+              >
+                <Download size={17} />
+              </a>
+              <button
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                onClick={() => setLightboxOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
 
             <motion.div
               initial={{ scale: 0.92 }}

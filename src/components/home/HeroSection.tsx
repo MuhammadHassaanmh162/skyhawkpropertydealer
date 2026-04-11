@@ -7,7 +7,11 @@ import { Search, ChevronDown } from 'lucide-react';
 import { PAKISTANI_CITIES } from '@/lib/constants/locations';
 import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  heroImageUrl?: string | null;
+}
+
+export function HeroSection({ heroImageUrl }: HeroSectionProps) {
   const [city,   setCity]   = useState('');
   const [type,   setType]   = useState('');
   const [status, setStatus] = useState('');
@@ -42,7 +46,7 @@ export function HeroSection() {
       <div className="container-max px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
         <div className="relative w-full h-[240px] sm:h-[380px] lg:h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden bg-warm">
           <Image
-            src="/assets/hero-bg.jpg"
+            src={heroImageUrl || '/assets/North-Town-Residency.jpg'}
             alt="Premium property in Pakistan"
             fill
             sizes="(max-width: 1280px) 100vw, 1280px"

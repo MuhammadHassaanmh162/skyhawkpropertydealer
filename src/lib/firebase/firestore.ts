@@ -81,14 +81,18 @@ export async function getProperties(filters?: PropertyFilters): Promise<Property
 }
 
 export async function getFeaturedProperties(count = 6): Promise<Property[]> {
+  // Fetch the latest properties and filter client-side — avoids requiring
+  // a Firestore composite index on (featured, createdAt) which may not exist.
   const q = query(
     collection(db, 'properties'),
-    where('featured', '==', true),
     orderBy('createdAt', 'desc'),
-    limit(count)
+    limit(count * 4) // over-fetch so we have enough after filtering
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => docToProperty(d.id, d.data()));
+  const all = snap.docs.map((d) => docToProperty(d.id, d.data()));
+  const featured = all.filter((p) => p.featured);
+  // Fall back to latest properties when none are marked featured yet
+  return (featured.length > 0 ? featured : all).slice(0, count);
 }
 
 export async function getProperty(id: string): Promise<Property | null> {

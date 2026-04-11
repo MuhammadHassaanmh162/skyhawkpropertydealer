@@ -42,10 +42,10 @@ export function SellerContactCard({ seller }: SellerContactCardProps) {
         {seller.email && (
           <a
             href={`mailto:${seller.email}`}
-            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-all text-sm font-medium"
+            className="flex items-center gap-3 w-full py-2.5 px-4 rounded-xl border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-all text-sm font-medium overflow-hidden"
           >
-            <Mail size={15} />
-            {seller.email}
+            <Mail size={15} className="shrink-0" />
+            <span className="truncate min-w-0">{seller.email}</span>
           </a>
         )}
       </div>

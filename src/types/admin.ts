@@ -16,5 +16,6 @@ export interface SiteSettings {
   youtubeUrl: string | null;
   heroHeadline: string;
   heroSubheadline: string;
+  heroImageUrl: string | null;
   updatedAt: Date;
 }

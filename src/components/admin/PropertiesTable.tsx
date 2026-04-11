@@ -8,8 +8,9 @@ import { format } from 'date-fns';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { deleteProperty } from '@/lib/firebase/firestore';
-import { deletePropertyImages } from '@/lib/firebase/storage';
+import { deletePropertyImages } from '@/lib/cloudinary';
 import { useProperties } from '@/lib/hooks/useProperties';
+import type { PropertyImage } from '@/types/property';
 import toast from 'react-hot-toast';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -17,7 +18,7 @@ export function PropertiesTable() {
   const { properties, loading } = useProperties();
   const [search, setSearch]     = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string; storagePaths: string[] } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string; images: PropertyImage[] } | null>(null);
 
   const filtered = properties.filter(
     (p) =>
@@ -29,7 +30,7 @@ export function PropertiesTable() {
     if (!deleteTarget) return;
     setDeleting(deleteTarget.id);
     try {
-      await deletePropertyImages(deleteTarget.storagePaths);
+      await deletePropertyImages(deleteTarget.images);
       await deleteProperty(deleteTarget.id);
       toast.success('Property deleted');
     } catch {
@@ -122,9 +123,9 @@ export function PropertiesTable() {
                         </Link>
                         <button
                           onClick={() => setDeleteTarget({
-                            id: property.id,
-                            title: property.title,
-                            storagePaths: property.images?.map((img) => img.storagePath) || [],
+                            id:     property.id,
+                            title:  property.title,
+                            images: property.images || [],
                           })}
                           className="p-1.5 rounded-lg text-ink-400 hover:text-red-500 hover:bg-red-50 transition-all"
                         >

@@ -1,7 +1,8 @@
 export interface PropertyImage {
-  url: string;
-  storagePath: string;
-  order: number;
+  url:          string;
+  publicId?:    string;  // Cloudinary public_id (current)
+  storagePath?: string;  // Firebase Storage path (legacy — kept for backward compat)
+  order:        number;
 }
 
 export interface PropertyLocation {

@@ -5,7 +5,7 @@ import { FeaturedProperties } from '@/components/home/FeaturedProperties';
 import { WhyChooseUs } from '@/components/home/WhyChooseUs';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { CTASection } from '@/components/home/CTASection';
-import { getFeaturedProperties } from '@/lib/firebase/firestore';
+import { getFeaturedProperties, getSiteSettings } from '@/lib/firebase/firestore';
 import type { Property } from '@/types/property';
 
 export const revalidate = 60;
@@ -17,15 +17,21 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   let featuredProperties: Property[] = [];
+  let heroImageUrl: string | null = null;
   try {
-    featuredProperties = await getFeaturedProperties(6);
+    const [properties, settings] = await Promise.all([
+      getFeaturedProperties(6),
+      getSiteSettings(),
+    ]);
+    featuredProperties = properties;
+    heroImageUrl = settings?.heroImageUrl ?? null;
   } catch {
     // Firebase not configured yet; show empty state
   }
 
   return (
     <>
-      <HeroSection />
+      <HeroSection heroImageUrl={heroImageUrl} />
       <StatsSection />
       <FeaturedProperties properties={featuredProperties} />
       <WhyChooseUs />
