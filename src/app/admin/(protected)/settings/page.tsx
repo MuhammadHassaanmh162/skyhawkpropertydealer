@@ -64,8 +64,8 @@ export default function AdminSettingsPage() {
       // Persist immediately so HeroSection picks it up on next page load
       await updateSiteSettings({ heroImageUrl: result.url });
       toast.success('Hero image updated');
-    } catch {
-      toast.error('Failed to upload image');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
       setHeroUploading(false);
       if (heroInputRef.current) heroInputRef.current.value = '';

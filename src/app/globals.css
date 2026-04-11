@@ -54,6 +54,13 @@
   }
 }
 
+/* Hide scrollbars on thumbnail strips while keeping scroll functionality */
+.scrollbar-none {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
 /* SVG spinning ring — ensure transform-origin is the center of the SVG */
 .animate-spin-slow {
   transform-origin: center center;

@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, ZoomIn, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Download, Images } from 'lucide-react';
 import type { PropertyImage } from '@/types/property';
 
 interface PropertyImageGalleryProps {
   images: PropertyImage[];
-  title: string;
+  title:  string;
 }
 
+/** Insert fl_attachment into a Cloudinary URL to force a browser download. */
 function toDownloadUrl(url: string): string {
   if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
     return url.replace('/upload/', '/upload/fl_attachment/');
@@ -18,27 +19,52 @@ function toDownloadUrl(url: string): string {
   return url;
 }
 
+const MAX_THUMBS = 5; // number of thumbnail slots (last becomes "+N" if overflow)
+
 export function PropertyImageGallery({ images, title }: PropertyImageGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex,  setActiveIndex]  = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const sorted = [...images].sort((a, b) => a.order - b.order);
 
-  const prev = useCallback(() => setActiveIndex((i) => (i - 1 + sorted.length) % sorted.length), [sorted.length]);
-  const next = useCallback(() => setActiveIndex((i) => (i + 1) % sorted.length), [sorted.length]);
+  const prev = useCallback(
+    () => setActiveIndex((i) => (i - 1 + sorted.length) % sorted.length),
+    [sorted.length],
+  );
+  const next = useCallback(
+    () => setActiveIndex((i) => (i + 1) % sorted.length),
+    [sorted.length],
+  );
 
+  // Keyboard navigation in lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'ArrowLeft')  prev();
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'Escape')     setLightboxOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxOpen, prev, next]);
+
+  // ── empty state ──────────────────────────────────────────────────────────────
   if (!sorted.length) {
     return (
-      <div className="aspect-video bg-gray-100 rounded-2xl flex items-center justify-center border border-gray-200">
+      <div className="w-full h-[260px] sm:h-[380px] bg-gray-100 rounded-2xl flex items-center justify-center border border-gray-200">
         <span className="text-gray-400 text-sm">No images available</span>
       </div>
     );
   }
 
+  const thumbsToShow = sorted.slice(0, MAX_THUMBS);
+  const overflow     = sorted.length - MAX_THUMBS; // how many hidden after the strip
+
+  // ── main render ──────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Main image */}
+      {/* ── Main image ── */}
       <div
-        className="relative aspect-video rounded-2xl overflow-hidden bg-gray-100 group cursor-pointer border border-gray-100"
+        className="relative w-full h-[260px] sm:h-[400px] lg:h-[480px] rounded-2xl overflow-hidden bg-gray-100 group cursor-pointer select-none"
         onClick={() => setLightboxOpen(true)}
       >
         <AnimatePresence mode="wait">
@@ -47,44 +73,48 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25 }}
             className="absolute inset-0"
           >
             <Image
               src={sorted[activeIndex].url}
-              alt={`${title} — image ${activeIndex + 1}`}
+              alt={`${title} — photo ${activeIndex + 1}`}
               fill
-              sizes="(max-width: 768px) 100vw, 60vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 65vw, 800px"
               className="object-cover"
               priority={activeIndex === 0}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Zoom hint — desktop hover only */}
-        <div className="absolute top-3 right-3 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
-            <ZoomIn size={12} /> View full size
-          </span>
+        {/* Gradient overlay (bottom) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+        {/* "View all photos" pill — bottom left */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
+          <Images size={12} />
+          {sorted.length} photo{sorted.length !== 1 ? 's' : ''} · tap to expand
         </div>
 
-        {/* Counter */}
-        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
+        {/* Counter — bottom right */}
+        <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-medium pointer-events-none">
           {activeIndex + 1} / {sorted.length}
         </div>
 
-        {/* Nav arrows — always visible on mobile, hover-reveal on desktop */}
+        {/* Arrow buttons — always visible on mobile, hover-reveal on desktop */}
         {sorted.length > 1 && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 transition-all hover:bg-white hover:shadow-card-hover gallery-arrow"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
+              aria-label="Previous image"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-card flex items-center justify-center text-gray-700 transition-all hover:bg-white hover:shadow-card-hover gallery-arrow"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-800 hover:bg-white transition-all gallery-arrow"
+              aria-label="Next image"
             >
               <ChevronRight size={18} />
             </button>
@@ -92,87 +122,155 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
         )}
       </div>
 
-      {/* Thumbnails */}
+      {/* ── Thumbnail strip ── */}
       {sorted.length > 1 && (
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-          {sorted.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              className={`relative shrink-0 w-20 h-14 rounded-xl overflow-hidden border-2 transition-all ${
-                i === activeIndex
-                  ? 'border-gold-400 shadow-gold/30 shadow-sm'
-                  : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-200'
-              }`}
-            >
-              <Image src={img.url} alt={`Thumb ${i + 1}`} fill sizes="80px" className="object-cover" />
-            </button>
-          ))}
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-none">
+          {thumbsToShow.map((img, i) => {
+            const isActive  = i === activeIndex;
+            const isOverflow = overflow > 0 && i === MAX_THUMBS - 1;
+
+            return (
+              <button
+                key={img.publicId ?? img.storagePath ?? i}
+                onClick={() => { setActiveIndex(i); if (isOverflow) setLightboxOpen(true); }}
+                className={`relative shrink-0 w-[84px] h-[62px] sm:w-[100px] sm:h-[74px] rounded-xl overflow-hidden border-2 transition-all ${
+                  isActive
+                    ? 'border-gray-900 shadow-md opacity-100'
+                    : 'border-transparent opacity-60 hover:opacity-90 hover:border-gray-300'
+                }`}
+                aria-label={isOverflow ? `View all ${sorted.length} photos` : `Photo ${i + 1}`}
+              >
+                <Image
+                  src={img.url}
+                  alt={`Thumbnail ${i + 1}`}
+                  fill
+                  sizes="100px"
+                  className="object-cover"
+                />
+                {/* "+N more" overlay on the last thumbnail when there are hidden images */}
+                {isOverflow && (
+                  <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">+{overflow + 1}</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Lightbox */}
+      {/* ── Lightbox ── */}
       <AnimatePresence>
         {lightboxOpen && (
           <motion.div
+            key="lightbox-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/92 backdrop-blur-sm flex items-center justify-center p-4"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col"
             onClick={() => setLightboxOpen(false)}
           >
-            <div className="absolute top-4 right-4 flex items-center gap-2">
-              <a
-                href={toDownloadUrl(sorted[activeIndex].url)}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                title="Download image"
-              >
-                <Download size={17} />
-              </a>
-              <button
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                onClick={() => setLightboxOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <motion.div
-              initial={{ scale: 0.92 }}
-              animate={{ scale: 1 }}
-              className="relative max-w-5xl w-full"
+            {/* Top bar */}
+            <div
+              className="flex items-center justify-between px-4 sm:px-6 py-4 shrink-0"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative aspect-video">
-                <Image
-                  src={sorted[activeIndex].url}
-                  alt={`${title} — image ${activeIndex + 1}`}
-                  fill
-                  sizes="90vw"
-                  className="object-contain"
-                />
+              <span className="text-white/70 text-sm font-medium">
+                {activeIndex + 1} / {sorted.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={toDownloadUrl(sorted[activeIndex].url)}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+                  title="Download image"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download size={15} />
+                  <span className="hidden sm:inline">Download</span>
+                </a>
+                <button
+                  onClick={() => setLightboxOpen(false)}
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
               </div>
-            </motion.div>
+            </div>
 
+            {/* Main image area */}
+            <div className="flex-1 flex items-center justify-center px-12 sm:px-16 min-h-0 relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.18 }}
+                  className="relative w-full max-w-5xl max-h-[calc(100vh-200px)]"
+                  style={{ aspectRatio: 'auto' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={sorted[activeIndex].url}
+                    alt={`${title} — photo ${activeIndex + 1}`}
+                    className="block mx-auto max-w-full max-h-[calc(100vh-200px)] object-contain rounded-xl shadow-2xl"
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Lightbox arrows */}
+              {sorted.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prev(); }}
+                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); next(); }}
+                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                    aria-label="Next"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Lightbox thumbnail strip */}
             {sorted.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); prev(); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                >
-                  <ChevronLeft size={22} />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); next(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                >
-                  <ChevronRight size={22} />
-                </button>
-              </>
+              <div
+                className="flex items-center justify-center gap-2 px-4 py-4 overflow-x-auto shrink-0 scrollbar-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {sorted.map((img, i) => (
+                  <button
+                    key={img.publicId ?? img.storagePath ?? i}
+                    onClick={() => setActiveIndex(i)}
+                    className={`relative shrink-0 w-14 h-10 sm:w-16 sm:h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                      i === activeIndex
+                        ? 'border-white opacity-100'
+                        : 'border-transparent opacity-40 hover:opacity-70'
+                    }`}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={`Thumb ${i + 1}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
           </motion.div>
         )}

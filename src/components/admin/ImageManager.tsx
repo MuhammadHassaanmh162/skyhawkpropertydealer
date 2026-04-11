@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
-import { Upload, X, Loader2, Eye } from 'lucide-react';
+import { Upload, X, Loader2, Eye, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadPropertyImage, deletePropertyImages } from '@/lib/cloudinary';
 import { ImagePreviewModal } from '@/components/ui/ImagePreviewModal';
@@ -78,9 +78,18 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
     maxFiles: 10,
   });
 
+  function setCover(index: number) {
+    if (index === 0) return;
+    const reordered = [
+      images[index],
+      ...images.slice(0, index),
+      ...images.slice(index + 1),
+    ].map((img, i) => ({ ...img, order: i }));
+    onChange(reordered);
+  }
+
   async function removeImage(index: number) {
     const img = images[index];
-    // Delete from Cloudinary (fire-and-forget — UI updates immediately)
     deletePropertyImages([img]).catch(() => null);
     onChange(images.filter((_, i) => i !== index));
   }
@@ -103,27 +112,47 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
                 sizes="120px"
                 className="object-cover"
               />
+              {/* Cover badge — top-left, hidden on hover */}
               {i === 0 && (
-                <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs bg-ink text-white font-medium">
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] bg-ink text-white font-medium z-10 group-hover:opacity-0 transition-opacity">
                   Cover
                 </div>
               )}
-              {/* Preview button — always visible on touch, hover-reveal on desktop */}
-              <button
-                type="button"
-                onClick={() => setPreviewSrc(img.url)}
-                className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors"
-                aria-label="Preview image"
-              >
-                <Eye size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 border border-warm-border flex items-center justify-center text-ink-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-500 z-10"
-              >
-                <X size={11} />
-              </button>
+
+              {/* 3-button hover overlay — same style as hero image in Settings */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                {/* Preview */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewSrc(img.url)}
+                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
+                  title="Preview"
+                >
+                  <Eye size={14} />
+                </button>
+
+                {/* Set as cover (only show for non-cover images) */}
+                {i !== 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setCover(i); }}
+                    className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
+                    title="Set as cover"
+                  >
+                    <Star size={14} />
+                  </button>
+                )}
+
+                {/* Remove */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-red-50 flex items-center justify-center text-ink hover:text-red-500 shadow transition-colors"
+                  title="Remove"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>

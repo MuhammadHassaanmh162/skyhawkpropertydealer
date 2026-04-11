@@ -5,6 +5,7 @@ import {
   getDoc,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   query,
   where,
@@ -166,10 +167,12 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
 }
 
 export async function updateSiteSettings(data: Partial<SiteSettings>): Promise<void> {
-  await updateDoc(doc(db, 'siteSettings', 'main'), {
+  // setDoc with merge creates the document if it doesn't exist yet,
+  // and merges fields if it does — safer than updateDoc which throws on missing docs.
+  await setDoc(doc(db, 'siteSettings', 'main'), {
     ...data,
     updatedAt: serverTimestamp(),
-  });
+  }, { merge: true });
 }
 
 export async function isAdminUser(uid: string): Promise<boolean> {

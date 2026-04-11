@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary, type UploadApiOptions } from 'cloudinary';
 
+// Give Cloudinary enough time to process large uploads (video especially).
+export const maxDuration = 60;   // seconds
+export const dynamic     = 'force-dynamic';
+
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
@@ -40,7 +44,8 @@ export async function POST(req: NextRequest) {
       resourceType: result.resource_type,
     });
   } catch (err) {
-    console.error('[Cloudinary upload]', err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[Cloudinary upload]', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
