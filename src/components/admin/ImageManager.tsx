@@ -23,8 +23,8 @@ interface UploadingFile {
 }
 
 export function ImageManager({ propertyId, images, onChange, onUploadingChange }: ImageManagerProps) {
-  const [uploading,   setUploading]   = useState<UploadingFile[]>([]);
-  const [previewSrc,  setPreviewSrc]  = useState<string | null>(null);
+  const [uploading,  setUploading]  = useState<UploadingFile[]>([]);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
   // Revoke object URLs on unmount to avoid memory leaks
   useEffect(() => {
@@ -41,12 +41,12 @@ export function ImageManager({ propertyId, images, onChange, onUploadingChange }
     }
 
     const previews = acceptedFiles.map((f) => ({
-      name:     f.name,
+      name:    f.name,
       progress: 0,
-      preview:  URL.createObjectURL(f),
+      preview: URL.createObjectURL(f),
     }));
     setUploading(previews);
-    onUploadingChange?.(true); // notify parent that upload is in progress
+    onUploadingChange?.(true);
 
     const uploaded: PropertyImage[] = [];
 
@@ -68,11 +68,10 @@ export function ImageManager({ propertyId, images, onChange, onUploadingChange }
       }
     }
 
-    // Revoke all preview object URLs now that upload is done
     previews.forEach((f) => URL.revokeObjectURL(f.preview));
     onChange([...images, ...uploaded]);
     setUploading([]);
-    onUploadingChange?.(false); // notify parent that upload is complete
+    onUploadingChange?.(false);
   }, [images, onChange, onUploadingChange, propertyId]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -91,8 +90,9 @@ export function ImageManager({ propertyId, images, onChange, onUploadingChange }
     onChange(reordered);
   }
 
-  async function removeImage(index: number) {
+  function removeImage(index: number) {
     const img = images[index];
+    // Best-effort Cloudinary cleanup — fire and forget
     deletePropertyImages([img]).catch(() => null);
     onChange(images.filter((_, i) => i !== index));
   }
@@ -100,76 +100,88 @@ export function ImageManager({ propertyId, images, onChange, onUploadingChange }
   return (
     <div className="space-y-4">
       <ImagePreviewModal src={previewSrc} onClose={() => setPreviewSrc(null)} />
-      {/* Existing images */}
+
+      {/* ── Saved / uploaded images ── */}
       {images.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
           {images.map((img, i) => (
-            <div
-              key={img.publicId ?? img.storagePath ?? img.url}
-              className="relative aspect-square rounded-xl overflow-hidden group bg-warm border border-warm-border"
-            >
-              <Image
-                src={img.url}
-                alt={`Image ${i + 1}`}
-                fill
-                sizes="120px"
-                className="object-cover"
-              />
-              {/* Cover badge — top-left, hidden on hover */}
+            /*
+             * Outer wrapper: positions the delete badge and cover label.
+             * Must NOT have overflow-hidden — that would clip the badge.
+             */
+            <div key={img.publicId ?? img.storagePath ?? img.url} className="relative group">
+
+              {/* ── Delete badge — sits OUTSIDE the overflow-hidden image box ── */}
+              <button
+                type="button"
+                onClick={() => removeImage(i)}
+                className={[
+                  'absolute -top-2 -right-2 z-30',
+                  'w-6 h-6 rounded-full shadow-md',
+                  'flex items-center justify-center',
+                  'bg-white border border-red-300 text-red-500',
+                  'hover:bg-red-500 hover:text-white hover:border-red-500',
+                  'transition-colors',
+                ].join(' ')}
+                title="Remove image"
+              >
+                <X size={12} />
+              </button>
+
+              {/* ── Cover label ── */}
               {i === 0 && (
-                <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] bg-ink text-white font-medium z-10 group-hover:opacity-0 transition-opacity">
+                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] bg-ink text-white font-medium z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
                   Cover
                 </div>
               )}
 
-              {/* Always-visible delete button — top-right corner */}
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 hover:bg-red-50 flex items-center justify-center text-ink-400 hover:text-red-500 shadow z-20 transition-colors"
-                title="Remove image"
-              >
-                <X size={11} />
-              </button>
+              {/* ── Image box — overflow-hidden is safe here because the delete button is outside ── */}
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-warm border border-warm-border">
+                <Image
+                  src={img.url}
+                  alt={`Image ${i + 1}`}
+                  fill
+                  sizes="120px"
+                  className="object-cover"
+                />
 
-              {/* Hover overlay for preview + set-as-cover */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                {/* Preview */}
-                <button
-                  type="button"
-                  onClick={() => setPreviewSrc(img.url)}
-                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
-                  title="Preview"
-                >
-                  <Eye size={14} />
-                </button>
-
-                {/* Set as cover (only show for non-cover images) */}
-                {i !== 0 && (
+                {/* Hover overlay: preview + set-as-cover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setCover(i); }}
+                    onClick={() => setPreviewSrc(img.url)}
                     className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
-                    title="Set as cover"
+                    title="Preview"
                   >
-                    <Star size={14} />
+                    <Eye size={14} />
                   </button>
-                )}
+                  {i !== 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setCover(i); }}
+                      className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
+                      title="Set as cover"
+                    >
+                      <Star size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Upload zone */}
+      {/* ── Upload zone ── */}
       {images.length < 10 && (
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+          className={[
+            'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all',
             isDragActive
               ? 'border-ink-900 bg-warm'
-              : 'border-warm-border hover:border-ink-300 hover:bg-warm-50'
-          }`}
+              : 'border-warm-border hover:border-ink-300 hover:bg-warm-50',
+          ].join(' ')}
         >
           <input {...getInputProps()} />
           <Upload size={22} className="mx-auto mb-3 text-ink-300" />
@@ -182,22 +194,16 @@ export function ImageManager({ propertyId, images, onChange, onUploadingChange }
         </div>
       )}
 
-      {/* Per-file upload progress with instant preview */}
+      {/* ── Per-file upload progress with instant preview ── */}
       {uploading.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
           {uploading.map((f) => (
             <div
               key={f.name}
               className="relative aspect-square rounded-xl overflow-hidden bg-warm border border-warm-border"
             >
-              {/* Local preview thumbnail */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={f.preview}
-                alt={f.name}
-                className="w-full h-full object-cover"
-              />
-              {/* Dark overlay with progress */}
+              <img src={f.preview} alt={f.name} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1.5 px-2">
                 <Loader2 size={16} className="animate-spin text-white" />
                 <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
