@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   let featuredProperties: Property[] = [];
+  let heroImages: string[] = [];
   let heroImageUrl: string | null = null;
   let heroHeadline: string | null = null;
   let heroSubheadline: string | null = null;
@@ -26,8 +27,9 @@ export default async function HomePage() {
       getSiteSettings(),
     ]);
     featuredProperties = properties;
-    heroImageUrl = settings?.heroImageUrl ?? null;
-    heroHeadline = settings?.heroHeadline || null;
+    heroImages    = settings?.heroImages ?? [];
+    heroImageUrl  = settings?.heroImageUrl ?? null;
+    heroHeadline  = settings?.heroHeadline || null;
     heroSubheadline = settings?.heroSubheadline || null;
   } catch {
     // Firebase not configured yet; show empty state
@@ -35,7 +37,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection heroImageUrl={heroImageUrl} heroHeadline={heroHeadline} heroSubheadline={heroSubheadline} />
+      <HeroSection heroImages={heroImages} heroImageUrl={heroImageUrl} heroHeadline={heroHeadline} heroSubheadline={heroSubheadline} />
       <StatsSection />
       <FeaturedProperties properties={featuredProperties} />
       <WhyChooseUs />

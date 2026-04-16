@@ -175,8 +175,14 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   const snap = await getDoc(doc(db, 'siteSettings', 'main'));
   if (!snap.exists()) return null;
   const data = snap.data();
+  // Migrate: if heroImages array is absent/empty but legacy heroImageUrl exists, promote it
+  let heroImages: string[] = Array.isArray(data.heroImages) ? (data.heroImages as string[]) : [];
+  if (heroImages.length === 0 && data.heroImageUrl) {
+    heroImages = [data.heroImageUrl as string];
+  }
   return {
     ...data,
+    heroImages,
     updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
   } as SiteSettings;
 }

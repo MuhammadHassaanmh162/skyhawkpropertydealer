@@ -17,5 +17,6 @@ export interface SiteSettings {
   heroHeadline: string;
   heroSubheadline: string;
   heroImageUrl: string | null;
+  heroImages: string[];
   updatedAt: Date;
 }

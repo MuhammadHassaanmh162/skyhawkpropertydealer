@@ -1,26 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown } from 'lucide-react';
-
-const BLUR_PLACEHOLDER =
-  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZGU5ZTEiLz48L3N2Zz4=';
+import { Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PAKISTANI_CITIES } from '@/lib/constants/locations';
 import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes';
 
+const BLUR_PLACEHOLDER =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZGU5ZTEiLz48L3N2Zz4=';
+
+const FALLBACK = '/assets/North-Town-Residency.jpg';
+const SLIDE_INTERVAL_MS = 5000;
+
 interface HeroSectionProps {
-  heroImageUrl?: string | null;
-  heroHeadline?: string | null;
+  heroImages?:      string[];
+  heroImageUrl?:    string | null; // legacy — kept for migration fallback
+  heroHeadline?:    string | null;
   heroSubheadline?: string | null;
 }
 
-export function HeroSection({ heroImageUrl, heroHeadline, heroSubheadline }: HeroSectionProps) {
+export function HeroSection({ heroImages = [], heroImageUrl, heroHeadline, heroSubheadline }: HeroSectionProps) {
+  // Resolve final image list: array → legacy single → local fallback
+  const images =
+    heroImages.length > 0
+      ? heroImages
+      : heroImageUrl
+      ? [heroImageUrl]
+      : [FALLBACK];
+
+  const [active,  setActive]  = useState(0);
+  const [paused,  setPaused]  = useState(false);
+
   const [city,   setCity]   = useState('');
   const [type,   setType]   = useState('');
   const [status, setStatus] = useState('');
   const router = useRouter();
+
+  // Auto-advance
+  useEffect(() => {
+    if (images.length <= 1 || paused) return;
+    const id = setInterval(() => {
+      setActive((prev) => (prev + 1) % images.length);
+    }, SLIDE_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [images.length, paused]);
+
+  function prev() {
+    setActive((a) => (a - 1 + images.length) % images.length);
+  }
+  function next() {
+    setActive((a) => (a + 1) % images.length);
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -47,30 +78,84 @@ export function HeroSection({ heroImageUrl, heroHeadline, heroSubheadline }: Her
         </div>
       </div>
 
-      {/* Full-width hero image */}
+      {/* Full-width hero slider */}
       <div className="container-max px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
-        <div className="relative w-full h-[240px] sm:h-[380px] lg:h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden bg-warm">
-          <Image
-            src={heroImageUrl || '/assets/North-Town-Residency.jpg'}
-            alt="Premium property in Pakistan"
-            fill
-            sizes="(max-width: 1280px) 100vw, 1280px"
-            className="object-cover"
-            priority
-            placeholder="blur"
-            blurDataURL={BLUR_PLACEHOLDER}
-          />
+        <div
+          className="relative w-full h-[240px] sm:h-[380px] lg:h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden bg-warm"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Stacked slides — opacity crossfade */}
+          {images.map((src, i) => (
+            <div
+              key={src}
+              className="absolute inset-0 transition-opacity duration-1000"
+              style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
+            >
+              <Image
+                src={src}
+                alt={`Hero image ${i + 1}`}
+                fill
+                sizes="(max-width: 1280px) 100vw, 1280px"
+                className="object-cover"
+                priority={i === 0}
+                placeholder="blur"
+                blurDataURL={BLUR_PLACEHOLDER}
+              />
+            </div>
+          ))}
+
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 pointer-events-none" />
+
+          {/* Prev / Next arrows — only when multiple images */}
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={prev}
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/30 hover:bg-black/55 text-white flex items-center justify-center transition-colors"
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/30 hover:bg-black/55 text-white flex items-center justify-center transition-colors"
+                aria-label="Next image"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
+
+          {/* Dot indicators — only when multiple images */}
+          {images.length > 1 && (
+            <div className="absolute bottom-14 sm:bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={[
+                    'h-1.5 rounded-full transition-all duration-300',
+                    i === active ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/75',
+                  ].join(' ')}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Property label — bottom left */}
-          <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 text-white">
+          <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 text-white z-10">
             <p className="font-semibold text-xs sm:text-sm">Premium Listings</p>
             <p className="text-white/60 text-[11px] sm:text-xs mt-0.5">Verified properties across Pakistan</p>
           </div>
 
-          {/* Stat cards — hidden on very small screens, visible sm+ */}
-          <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 hidden xs:flex sm:flex gap-2 sm:gap-3">
+          {/* Stat cards — bottom right */}
+          <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 hidden xs:flex sm:flex gap-2 sm:gap-3 z-10">
             <div className="bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 sm:px-5 py-2 sm:py-3 text-center shadow-card-lg">
               <p className="text-base sm:text-xl font-bold text-ink">200+</p>
               <p className="text-ink-400 text-[10px] sm:text-xs mt-0.5">Listings</p>
@@ -143,6 +228,7 @@ export function HeroSection({ heroImageUrl, heroHeadline, heroSubheadline }: Her
           {['DHA Lahore', 'Bahria Town', 'Islamabad F-10', 'Karachi'].map((q) => (
             <button
               key={q}
+              type="button"
               onClick={() => router.push(`/properties?search=${encodeURIComponent(q)}`)}
               className="px-3 py-1 rounded-full border border-warm-border text-ink-500 text-xs hover:border-ink-900 hover:text-ink transition-colors"
             >

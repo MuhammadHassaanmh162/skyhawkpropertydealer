@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
-import { Upload, Loader2, Eye, X } from 'lucide-react';
+import { Upload, Loader2, X, Plus, Eye } from 'lucide-react';
 import { getSiteSettings, updateSiteSettings } from '@/lib/firebase/firestore';
 import { uploadPropertyImage } from '@/lib/cloudinary';
 import { Input } from '@/components/ui/Input';
@@ -28,13 +28,20 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface HeroUpload {
+  id:       string;
+  preview:  string; // blob URL for instant preview
+  progress: number;
+}
+
+const MAX_HERO_IMAGES = 8;
+
 export default function AdminSettingsPage() {
-  const [loading,        setLoading]        = useState(true);
-  const [saving,         setSaving]          = useState(false);
-  const [heroImageUrl,   setHeroImageUrl]    = useState<string | null>(null);
-  const [heroUploading,  setHeroUploading]   = useState(false);
-  const [heroProgress,   setHeroProgress]    = useState(0);
-  const [previewSrc,     setPreviewSrc]      = useState<string | null>(null);
+  const [loading,      setLoading]      = useState(true);
+  const [saving,       setSaving]       = useState(false);
+  const [heroImages,   setHeroImages]   = useState<string[]>([]);
+  const [heroUploads,  setHeroUploads]  = useState<HeroUpload[]>([]);
+  const [previewSrc,   setPreviewSrc]   = useState<string | null>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, reset } = useForm<FormValues>({
@@ -46,42 +53,88 @@ export default function AdminSettingsPage() {
       .then((settings) => {
         if (settings) {
           reset(settings as FormValues);
-          setHeroImageUrl(settings.heroImageUrl ?? null);
+          setHeroImages(settings.heroImages ?? []);
         }
       })
       .catch(() => toast.error('Failed to load settings'))
       .finally(() => setLoading(false));
   }, [reset]);
 
-  async function handleHeroImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setHeroUploading(true);
-    setHeroProgress(0);
-    try {
-      const result = await uploadPropertyImage('site-settings', file, 0, setHeroProgress);
-      setHeroImageUrl(result.url);
-      // Persist immediately so HeroSection picks it up on next page load
-      await updateSiteSettings({ heroImageUrl: result.url });
-      toast.success('Hero image updated');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to upload image');
-    } finally {
-      setHeroUploading(false);
+  async function handleHeroFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const remaining = MAX_HERO_IMAGES - heroImages.length - heroUploads.length;
+    if (remaining <= 0) {
+      toast.error(`Maximum ${MAX_HERO_IMAGES} hero images`);
       if (heroInputRef.current) heroInputRef.current.value = '';
+      return;
     }
+    const batch = files.slice(0, remaining);
+
+    // Create upload tracking entries with blob previews
+    const entries: HeroUpload[] = batch.map((f) => ({
+      id:       `${Date.now()}_${f.name}`,
+      preview:  URL.createObjectURL(f),
+      progress: 0,
+    }));
+    setHeroUploads((prev) => [...prev, ...entries]);
+
+    const uploaded: string[] = [];
+
+    for (let i = 0; i < batch.length; i++) {
+      const entry = entries[i];
+      try {
+        const result = await uploadPropertyImage(
+          'site-settings',
+          batch[i],
+          heroImages.length + i,
+          (progress) => {
+            setHeroUploads((prev) =>
+              prev.map((u) => (u.id === entry.id ? { ...u, progress } : u))
+            );
+          }
+        );
+        uploaded.push(result.url);
+      } catch {
+        toast.error(`Failed to upload ${batch[i].name}`);
+      } finally {
+        URL.revokeObjectURL(entry.preview);
+        setHeroUploads((prev) => prev.filter((u) => u.id !== entry.id));
+      }
+    }
+
+    if (uploaded.length > 0) {
+      // Use functional update to merge with the most current state
+      setHeroImages((prev) => {
+        const next = [...prev, ...uploaded];
+        // Persist immediately — fire and forget error handling via toast
+        updateSiteSettings({ heroImages: next }).catch(() =>
+          toast.error('Failed to save hero images')
+        );
+        return next;
+      });
+      toast.success(uploaded.length === 1 ? 'Image added' : `${uploaded.length} images added`);
+    }
+
+    if (heroInputRef.current) heroInputRef.current.value = '';
   }
 
-  async function removeHeroImage() {
-    setHeroImageUrl(null);
-    await updateSiteSettings({ heroImageUrl: null });
-    toast.success('Hero image removed');
+  async function removeHeroImage(index: number) {
+    const next = heroImages.filter((_, i) => i !== index);
+    setHeroImages(next);
+    try {
+      await updateSiteSettings({ heroImages: next });
+      toast.success('Image removed');
+    } catch {
+      toast.error('Failed to remove image');
+    }
   }
 
   async function onSubmit(data: FormValues) {
     setSaving(true);
     try {
-      await updateSiteSettings({ ...data, heroImageUrl });
+      await updateSiteSettings({ ...data });
       toast.success('Settings saved!');
     } catch {
       toast.error('Failed to save settings');
@@ -89,6 +142,8 @@ export default function AdminSettingsPage() {
       setSaving(false);
     }
   }
+
+  const canAddMore = heroImages.length + heroUploads.length < MAX_HERO_IMAGES;
 
   if (loading) {
     return (
@@ -107,64 +162,107 @@ export default function AdminSettingsPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
-        {/* ── Hero Image ── */}
+        {/* ── Hero Images (Slider) ── */}
         <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6 space-y-4">
           <div>
-            <h2 className="font-semibold text-ink text-base">Hero Section Image</h2>
+            <h2 className="font-semibold text-ink text-base">Hero Slider Images</h2>
             <p className="text-ink-400 text-xs mt-0.5">
-              The full-width banner image shown on the home page ("Premium Property in Pakistan").
+              Upload up to {MAX_HERO_IMAGES} images — they rotate as a slider on the home page. First image is shown first.
             </p>
           </div>
 
-          {heroImageUrl ? (
-            <div className="relative w-full aspect-[16/7] rounded-xl overflow-hidden bg-warm border border-warm-border group">
-              <Image
-                src={heroImageUrl}
-                alt="Hero image preview"
-                fill
-                sizes="(max-width: 768px) 100vw, 672px"
-                className="object-cover"
-              />
-              {/* Hover controls */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => setPreviewSrc(heroImageUrl)}
-                  className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-ink hover:bg-white transition-colors shadow"
-                  title="Preview"
+          {/* Image grid */}
+          {(heroImages.length > 0 || heroUploads.length > 0) && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+
+              {/* Saved images */}
+              {heroImages.map((url, i) => (
+                <div key={url} className="relative group">
+                  {/* Delete badge — outside overflow-hidden */}
+                  <button
+                    type="button"
+                    onClick={() => removeHeroImage(i)}
+                    className={[
+                      'absolute -top-2 -right-2 z-30',
+                      'w-6 h-6 rounded-full shadow-md',
+                      'flex items-center justify-center',
+                      'bg-white border border-red-300 text-red-500',
+                      'hover:bg-red-500 hover:text-white hover:border-red-500',
+                      'transition-colors',
+                    ].join(' ')}
+                    title="Remove image"
+                  >
+                    <X size={12} />
+                  </button>
+
+                  {/* Cover label on first image */}
+                  {i === 0 && (
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] bg-ink text-white font-medium z-10 pointer-events-none">
+                      First
+                    </div>
+                  )}
+
+                  {/* Image box */}
+                  <div className="relative aspect-square rounded-xl overflow-hidden bg-warm border border-warm-border">
+                    <Image
+                      src={url}
+                      alt={`Hero image ${i + 1}`}
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                    />
+                    {/* Hover: preview */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewSrc(url)}
+                        className="w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-ink shadow transition-colors"
+                        title="Preview"
+                      >
+                        <Eye size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* In-progress uploads */}
+              {heroUploads.map((u) => (
+                <div
+                  key={u.id}
+                  className="relative aspect-square rounded-xl overflow-hidden bg-warm border border-warm-border"
                 >
-                  <Eye size={17} />
-                </button>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={u.preview} alt="Uploading…" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1.5 px-2">
+                    <Loader2 size={16} className="animate-spin text-white" />
+                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-white transition-all duration-300 rounded-full"
+                        style={{ width: `${u.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-white text-[10px] font-medium">{u.progress}%</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add more button */}
+              {canAddMore && (
                 <button
                   type="button"
                   onClick={() => heroInputRef.current?.click()}
-                  className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-ink hover:bg-white transition-colors shadow"
-                  title="Replace image"
+                  className="aspect-square rounded-xl border-2 border-dashed border-warm-border hover:border-ink-300 hover:bg-warm-50 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Upload size={17} />
+                  <Plus size={20} className="text-ink-300" />
+                  <span className="text-ink-300 text-[11px]">Add</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={removeHeroImage}
-                  className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors shadow"
-                  title="Remove image"
-                >
-                  <X size={17} />
-                </button>
-              </div>
+              )}
             </div>
-          ) : heroUploading ? (
-            <div className="w-full aspect-[16/7] rounded-xl bg-warm border border-warm-border flex flex-col items-center justify-center gap-3">
-              <Loader2 size={22} className="animate-spin text-ink-400" />
-              <div className="w-40 h-1.5 bg-warm-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-ink rounded-full transition-all duration-300"
-                  style={{ width: `${heroProgress}%` }}
-                />
-              </div>
-              <span className="text-ink-400 text-xs">{heroProgress}%</span>
-            </div>
-          ) : (
+          )}
+
+          {/* Empty state dropzone */}
+          {heroImages.length === 0 && heroUploads.length === 0 && (
             <button
               type="button"
               onClick={() => heroInputRef.current?.click()}
@@ -172,8 +270,8 @@ export default function AdminSettingsPage() {
             >
               <Upload size={24} className="text-ink-300" />
               <div className="text-center">
-                <p className="text-ink-500 text-sm font-medium">Click to upload hero image</p>
-                <p className="text-ink-300 text-xs mt-0.5">JPG, PNG, WebP · Recommended 1400 × 600 px</p>
+                <p className="text-ink-500 text-sm font-medium">Click to upload hero images</p>
+                <p className="text-ink-300 text-xs mt-0.5">JPG, PNG, WebP · Up to {MAX_HERO_IMAGES} images · Recommended 1400 × 600 px</p>
               </div>
             </button>
           )}
@@ -182,9 +280,17 @@ export default function AdminSettingsPage() {
             ref={heroInputRef}
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
-            onChange={handleHeroImageChange}
+            onChange={handleHeroFilesChange}
           />
+        </section>
+
+        {/* ── Hero Text ── */}
+        <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6 space-y-4">
+          <h2 className="font-semibold text-ink text-base mb-2">Hero Section Text</h2>
+          <Input label="Hero Headline"     {...register('heroHeadline')}    placeholder="Find Your Dream Property in Pakistan" />
+          <Input label="Hero Sub-headline" {...register('heroSubheadline')} placeholder="Trusted property dealer..." />
         </section>
 
         {/* ── Contact Details ── */}
@@ -204,19 +310,11 @@ export default function AdminSettingsPage() {
           <Input label="YouTube URL"   {...register('youtubeUrl')}   placeholder="https://youtube.com/..." />
         </section>
 
-        {/* ── Hero Text ── */}
-        <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6 space-y-4">
-          <h2 className="font-semibold text-ink text-base mb-2">Hero Section Text</h2>
-          <Input label="Hero Headline"     {...register('heroHeadline')}    placeholder="Find Your Dream Property in Pakistan" />
-          <Input label="Hero Sub-headline" {...register('heroSubheadline')} placeholder="Trusted property dealer..." />
-        </section>
-
         <div className="flex justify-end">
           <Button type="submit" isLoading={saving} size="lg">Save Settings</Button>
         </div>
       </form>
 
-      {/* Full-screen preview modal */}
       <ImagePreviewModal src={previewSrc} alt="Hero image" onClose={() => setPreviewSrc(null)} />
     </div>
   );
