@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   let featuredProperties: Property[] = [];
   let heroImageUrl: string | null = null;
+  let heroHeadline: string | null = null;
+  let heroSubheadline: string | null = null;
   try {
     const [properties, settings] = await Promise.all([
       getFeaturedProperties(6),
@@ -25,13 +27,15 @@ export default async function HomePage() {
     ]);
     featuredProperties = properties;
     heroImageUrl = settings?.heroImageUrl ?? null;
+    heroHeadline = settings?.heroHeadline || null;
+    heroSubheadline = settings?.heroSubheadline || null;
   } catch {
     // Firebase not configured yet; show empty state
   }
 
   return (
     <>
-      <HeroSection heroImageUrl={heroImageUrl} />
+      <HeroSection heroImageUrl={heroImageUrl} heroHeadline={heroHeadline} heroSubheadline={heroSubheadline} />
       <StatsSection />
       <FeaturedProperties properties={featuredProperties} />
       <WhyChooseUs />

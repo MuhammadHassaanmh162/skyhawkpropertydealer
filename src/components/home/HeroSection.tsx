@@ -12,9 +12,11 @@ import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes
 
 interface HeroSectionProps {
   heroImageUrl?: string | null;
+  heroHeadline?: string | null;
+  heroSubheadline?: string | null;
 }
 
-export function HeroSection({ heroImageUrl }: HeroSectionProps) {
+export function HeroSection({ heroImageUrl, heroHeadline, heroSubheadline }: HeroSectionProps) {
   const [city,   setCity]   = useState('');
   const [type,   setType]   = useState('');
   const [status, setStatus] = useState('');
@@ -35,11 +37,11 @@ export function HeroSection({ heroImageUrl }: HeroSectionProps) {
       <div className="container-max px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-8 sm:pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-end">
           <h1 className="text-[clamp(2rem,6vw,4rem)] font-bold text-ink leading-[1.1] tracking-tight">
-            Properties Crafted<br />for People Who Want<br />the Best
+            {heroHeadline || 'Properties Crafted for People Who Want the Best'}
           </h1>
           <div className="lg:max-w-xs lg:ml-auto">
             <p className="text-ink-500 text-sm sm:text-base leading-relaxed">
-              Sky Hawk curates verified properties across Pakistan — connecting you directly with sellers, no hidden fees.
+              {heroSubheadline || 'Sky Hawk curates verified properties across Pakistan — connecting you directly with sellers, no hidden fees.'}
             </p>
           </div>
         </div>

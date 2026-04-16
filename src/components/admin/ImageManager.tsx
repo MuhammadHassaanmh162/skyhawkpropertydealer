@@ -10,9 +10,10 @@ import { ImagePreviewModal } from '@/components/ui/ImagePreviewModal';
 import type { PropertyImage } from '@/types/property';
 
 interface ImageManagerProps {
-  propertyId: string;
-  images:     PropertyImage[];
-  onChange:   (images: PropertyImage[]) => void;
+  propertyId:         string;
+  images:             PropertyImage[];
+  onChange:           (images: PropertyImage[]) => void;
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
 interface UploadingFile {
@@ -21,7 +22,7 @@ interface UploadingFile {
   preview:  string; // local object URL for instant preview
 }
 
-export function ImageManager({ propertyId, images, onChange }: ImageManagerProps) {
+export function ImageManager({ propertyId, images, onChange, onUploadingChange }: ImageManagerProps) {
   const [uploading,   setUploading]   = useState<UploadingFile[]>([]);
   const [previewSrc,  setPreviewSrc]  = useState<string | null>(null);
 
@@ -45,6 +46,7 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
       preview:  URL.createObjectURL(f),
     }));
     setUploading(previews);
+    onUploadingChange?.(true); // notify parent that upload is in progress
 
     const uploaded: PropertyImage[] = [];
 
@@ -70,7 +72,8 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
     previews.forEach((f) => URL.revokeObjectURL(f.preview));
     onChange([...images, ...uploaded]);
     setUploading([]);
-  }, [images, onChange, propertyId]);
+    onUploadingChange?.(false); // notify parent that upload is complete
+  }, [images, onChange, onUploadingChange, propertyId]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -119,7 +122,17 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
                 </div>
               )}
 
-              {/* 3-button hover overlay — same style as hero image in Settings */}
+              {/* Always-visible delete button — top-right corner */}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 hover:bg-red-50 flex items-center justify-center text-ink-400 hover:text-red-500 shadow z-20 transition-colors"
+                title="Remove image"
+              >
+                <X size={11} />
+              </button>
+
+              {/* Hover overlay for preview + set-as-cover */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                 {/* Preview */}
                 <button
@@ -142,16 +155,6 @@ export function ImageManager({ propertyId, images, onChange }: ImageManagerProps
                     <Star size={14} />
                   </button>
                 )}
-
-                {/* Remove */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                  className="w-8 h-8 rounded-full bg-white/90 hover:bg-red-50 flex items-center justify-center text-ink hover:text-red-500 shadow transition-colors"
-                  title="Remove"
-                >
-                  <X size={14} />
-                </button>
               </div>
             </div>
           ))}

@@ -57,6 +57,7 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
   const tempId = property?.id || `temp_${Date.now()}`;
   const [images, setImages] = useState<PropertyImage[]>(property?.images || []);
   const [submitting, setSubmitting] = useState(false);
+  const [imagesUploading, setImagesUploading] = useState(false);
 
   // Video upload state
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -221,7 +222,12 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
       {/* Media */}
       <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6">
         <h2 className="font-semibold text-ink text-base mb-5">Images</h2>
-        <ImageManager propertyId={tempId} images={images} onChange={setImages} />
+        <ImageManager
+          propertyId={tempId}
+          images={images}
+          onChange={setImages}
+          onUploadingChange={setImagesUploading}
+        />
 
         {/* Video — optional */}
         <div className="mt-6 pt-5 border-t border-warm-border">
@@ -333,10 +339,16 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
 
       {/* Submit */}
       <div className="flex items-center justify-end gap-4 pt-2">
-        <Button type="button" variant="ghost" onClick={() => router.back()} disabled={submitting}>
+        {imagesUploading && (
+          <p className="text-xs text-ink-400 flex items-center gap-1.5 mr-auto">
+            <Loader2 size={13} className="animate-spin" />
+            Uploading images, please wait…
+          </p>
+        )}
+        <Button type="button" variant="ghost" onClick={() => router.back()} disabled={submitting || imagesUploading}>
           Cancel
         </Button>
-        <Button type="submit" isLoading={submitting} size="lg">
+        <Button type="submit" isLoading={submitting} size="lg" disabled={imagesUploading}>
           {mode === 'create' ? 'Add Property' : 'Save Changes'}
         </Button>
       </div>

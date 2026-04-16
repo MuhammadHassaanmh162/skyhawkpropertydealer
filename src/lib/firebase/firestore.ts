@@ -56,9 +56,15 @@ export async function getProperties(filters?: PropertyFilters): Promise<Property
   if (filters?.status) constraints.push(where('status', '==', filters.status));
   if (filters?.city) constraints.push(where('location.city', '==', filters.city));
 
-  const sortField = filters?.sort === 'price_asc' || filters?.sort === 'price_desc' ? 'price' : 'createdAt';
-  const sortDir = filters?.sort === 'price_asc' || filters?.sort === 'date_asc' ? 'asc' : 'desc';
-  constraints.push(orderBy(sortField, sortDir));
+  // Combining where() with orderBy() on a different field requires a Firestore
+  // composite index that may not exist. When equality filters are present we
+  // skip the Firestore orderBy and sort the results client-side instead.
+  const hasWhereFilters = !!(filters?.type || filters?.status || filters?.city);
+  if (!hasWhereFilters) {
+    const sortField = filters?.sort === 'price_asc' || filters?.sort === 'price_desc' ? 'price' : 'createdAt';
+    const sortDir = filters?.sort === 'price_asc' || filters?.sort === 'date_asc' ? 'asc' : 'desc';
+    constraints.push(orderBy(sortField, sortDir));
+  }
 
   const q = query(collection(db, 'properties'), ...constraints);
   const snap = await getDocs(q);
@@ -78,22 +84,31 @@ export async function getProperties(filters?: PropertyFilters): Promise<Property
   if (filters?.minPrice) properties = properties.filter((p) => p.price >= filters.minPrice!);
   if (filters?.maxPrice) properties = properties.filter((p) => p.price <= filters.maxPrice!);
 
+  // Client-side sort when where filters prevented Firestore-level ordering
+  if (hasWhereFilters) {
+    properties.sort((a, b) => {
+      switch (filters?.sort) {
+        case 'price_asc':  return a.price - b.price;
+        case 'price_desc': return b.price - a.price;
+        case 'date_asc':   return a.createdAt.getTime() - b.createdAt.getTime();
+        default:           return b.createdAt.getTime() - a.createdAt.getTime();
+      }
+    });
+  }
+
   return properties;
 }
 
 export async function getFeaturedProperties(count = 6): Promise<Property[]> {
-  // Fetch the latest properties and filter client-side — avoids requiring
-  // a Firestore composite index on (featured, createdAt) which may not exist.
-  const q = query(
-    collection(db, 'properties'),
-    orderBy('createdAt', 'desc'),
-    limit(count * 4) // over-fetch so we have enough after filtering
+  // Query featured properties directly — a single equality where clause
+  // requires no composite index, and we sort client-side to avoid one.
+  const featuredSnap = await getDocs(
+    query(collection(db, 'properties'), where('featured', '==', true))
   );
-  const snap = await getDocs(q);
-  const all = snap.docs.map((d) => docToProperty(d.id, d.data()));
-  const featured = all.filter((p) => p.featured);
-  // Fall back to latest properties when none are marked featured yet
-  return (featured.length > 0 ? featured : all).slice(0, count);
+  const featured = featuredSnap.docs.map((d) => docToProperty(d.id, d.data()));
+  // Sort newest-first client-side (avoids needing a composite index)
+  featured.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return featured.slice(0, count);
 }
 
 export async function getProperty(id: string): Promise<Property | null> {
