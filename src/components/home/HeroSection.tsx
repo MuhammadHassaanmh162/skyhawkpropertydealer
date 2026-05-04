@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { PAKISTANI_CITIES } from '@/lib/constants/locations';
+import { Search, MapPin, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes';
 
 const BLUR_PLACEHOLDER =
@@ -32,7 +32,6 @@ export function HeroSection({ heroImages = [], heroImageUrl, heroHeadline, heroS
   const [active,  setActive]  = useState(0);
   const [paused,  setPaused]  = useState(false);
 
-  const [city,   setCity]   = useState('');
   const [type,   setType]   = useState('');
   const [status, setStatus] = useState('');
   const router = useRouter();
@@ -56,7 +55,6 @@ export function HeroSection({ heroImages = [], heroImageUrl, heroHeadline, heroS
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (city)   params.set('city', city);
     if (type)   params.set('type', type);
     if (status) params.set('status', status);
     router.push(`/properties?${params.toString()}`);
@@ -174,17 +172,10 @@ export function HeroSection({ heroImages = [], heroImageUrl, heroHeadline, heroS
           onSubmit={handleSearch}
           className="flex flex-col sm:flex-row gap-2 bg-white border border-warm-border rounded-2xl shadow-card p-2 max-w-3xl"
         >
-          {/* City */}
-          <div className="relative flex-1">
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="w-full pl-4 pr-8 py-3 text-sm text-ink bg-warm-50 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-ink-900/10 appearance-none cursor-pointer"
-            >
-              <option value="">All Cities</option>
-              {PAKISTANI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none" />
+          {/* City — fixed to Karachi */}
+          <div className="flex items-center gap-2 px-4 py-3 bg-warm-50 rounded-xl flex-1">
+            <MapPin size={14} className="text-gold-500 shrink-0" />
+            <span className="text-sm text-ink font-medium">Karachi</span>
           </div>
 
           {/* Type */}
@@ -225,7 +216,7 @@ export function HeroSection({ heroImages = [], heroImageUrl, heroHeadline, heroS
         {/* Popular searches */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <span className="text-ink-300 text-xs">Popular:</span>
-          {['DHA Lahore', 'Bahria Town', 'Islamabad F-10', 'Karachi'].map((q) => (
+          {['DHA Karachi', 'Bahria Town', 'Clifton', 'Gulshan-e-Iqbal', 'PECHS'].map((q) => (
             <button
               key={q}
               type="button"

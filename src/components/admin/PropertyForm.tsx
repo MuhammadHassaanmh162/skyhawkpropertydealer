@@ -93,7 +93,7 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
           status: 'For Sale',
           areaUnit: 'Marla',
           featured: false,
-          location: { city: '', area: '', address: '', mapEmbedUrl: null },
+          location: { city: 'Karachi', area: '', address: '', mapEmbedUrl: null },
           seller: { name: '', phone: '', whatsapp: '', email: '' },
         },
   });
@@ -193,7 +193,13 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
       <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6">
         <h2 className="font-semibold text-ink text-base mb-5">Location</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select label="City" options={PAKISTANI_CITIES.map((c) => ({ value: c, label: c }))} error={errors.location?.city?.message} {...register('location.city')} placeholder="Select city" />
+          <div>
+            <label className="block text-sm font-medium text-ink-500 mb-1.5">City</label>
+            <div className="px-4 py-2.5 bg-warm-50 border border-warm-border rounded-xl text-ink text-sm font-medium">
+              Karachi
+            </div>
+            <input type="hidden" value="Karachi" {...register('location.city')} />
+          </div>
           <Input label="Area / Sector / Phase" error={errors.location?.area?.message} {...register('location.area')} placeholder="e.g. DHA Phase 5" />
           <div className="md:col-span-2">
             <Input label="Full Address (optional)" {...register('location.address')} placeholder="e.g. Street 15, Block A, DHA Phase 5" />
@@ -319,22 +325,6 @@ export function PropertyForm({ mode, property }: PropertyFormProps) {
           <Input label="WhatsApp Number" error={errors.seller?.whatsapp?.message} {...register('seller.whatsapp')} placeholder="+923001234567" helperText="Include country code without +" />
           <Input label="Email (optional)" {...register('seller.email')} placeholder="seller@example.com" />
         </div>
-      </section>
-
-      {/* Settings */}
-      <section className="bg-white border border-warm-border rounded-2xl shadow-card p-6">
-        <h2 className="font-semibold text-ink text-base mb-5">Settings</h2>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('featured')}
-            className="w-4 h-4 rounded border-warm-border bg-white text-ink focus:ring-ink/20"
-          />
-          <div>
-            <span className="text-ink text-sm font-medium">Featured Listing</span>
-            <p className="text-ink-400 text-xs">Show this property on the homepage featured section</p>
-          </div>
-        </label>
       </section>
 
       {/* Submit */}

@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
-import { PAKISTANI_CITIES } from '@/lib/constants/locations';
 import { PROPERTY_TYPES, PROPERTY_STATUSES } from '@/lib/constants/propertyTypes';
 
 const selectClass = 'w-full bg-white border border-warm-border rounded-xl px-4 py-2.5 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink-900/10 focus:border-ink-900 transition-colors';
@@ -16,7 +15,6 @@ export function PropertyFilters() {
   const [isPending, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [city,     setCity]     = useState(searchParams.get('city')     || '');
   const [type,     setType]     = useState(searchParams.get('type')     || '');
   const [status,   setStatus]   = useState(searchParams.get('status')   || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
@@ -24,11 +22,10 @@ export function PropertyFilters() {
   const [sort,     setSort]     = useState(searchParams.get('sort')     || '');
   const [search,   setSearch]   = useState(searchParams.get('search')   || '');
 
-  const hasFilters = city || type || status || minPrice || maxPrice || sort || search;
+  const hasFilters = type || status || minPrice || maxPrice || sort || search;
 
   function applyFilters() {
     const params = new URLSearchParams();
-    if (city)     params.set('city', city);
     if (type)     params.set('type', type);
     if (status)   params.set('status', status);
     if (minPrice) params.set('minPrice', minPrice);
@@ -40,7 +37,7 @@ export function PropertyFilters() {
   }
 
   function clearAll() {
-    setCity(''); setType(''); setStatus('');
+    setType(''); setStatus('');
     setMinPrice(''); setMaxPrice(''); setSort(''); setSearch('');
     startTransition(() => router.push(pathname));
   }
@@ -60,14 +57,6 @@ export function PropertyFilters() {
             className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-ink-900/10 focus:border-ink-900"
           />
         </div>
-      </div>
-
-      <div>
-        <label className={labelClass}>City</label>
-        <select value={city} onChange={(e) => setCity(e.target.value)} className={selectClass}>
-          <option value="">All Cities</option>
-          {PAKISTANI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
       </div>
 
       <div>

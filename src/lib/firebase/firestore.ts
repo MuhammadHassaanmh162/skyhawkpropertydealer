@@ -100,15 +100,10 @@ export async function getProperties(filters?: PropertyFilters): Promise<Property
 }
 
 export async function getFeaturedProperties(count = 6): Promise<Property[]> {
-  // Query featured properties directly — a single equality where clause
-  // requires no composite index, and we sort client-side to avoid one.
-  const featuredSnap = await getDocs(
-    query(collection(db, 'properties'), where('featured', '==', true))
+  const snap = await getDocs(
+    query(collection(db, 'properties'), orderBy('createdAt', 'desc'), limit(count))
   );
-  const featured = featuredSnap.docs.map((d) => docToProperty(d.id, d.data()));
-  // Sort newest-first client-side (avoids needing a composite index)
-  featured.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  return featured.slice(0, count);
+  return snap.docs.map((d) => docToProperty(d.id, d.data()));
 }
 
 export async function getProperty(id: string): Promise<Property | null> {

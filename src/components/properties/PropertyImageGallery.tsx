@@ -29,6 +29,7 @@ const MAX_THUMBS = 5; // number of thumbnail slots (last becomes "+N" if overflo
 export function PropertyImageGallery({ images, title }: PropertyImageGalleryProps) {
   const [activeIndex,  setActiveIndex]  = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [paused,       setPaused]       = useState(false);
   const sorted = [...images].sort((a, b) => a.order - b.order);
 
   const prev = useCallback(
@@ -39,6 +40,13 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
     () => setActiveIndex((i) => (i + 1) % sorted.length),
     [sorted.length],
   );
+
+  // Auto-advance every 4 s — pauses on hover and when lightbox is open
+  useEffect(() => {
+    if (sorted.length <= 1 || paused || lightboxOpen) return;
+    const id = setInterval(next, 4000);
+    return () => clearInterval(id);
+  }, [sorted.length, paused, lightboxOpen, next]);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -72,6 +80,8 @@ export function PropertyImageGallery({ images, title }: PropertyImageGalleryProp
       <div
         className="relative w-full h-[260px] sm:h-[400px] lg:h-[480px] rounded-2xl overflow-hidden bg-[#ede9e1] group cursor-pointer select-none"
         onClick={() => setLightboxOpen(true)}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
       >
         {sorted.map((img, i) => (
           <div
